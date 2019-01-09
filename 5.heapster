@@ -1,0 +1,80 @@
+镜像：
+docker pull coll/heapster-influxdb-amd64:v1.3.3
+docker pull coll/heapster-grafana-amd64:v4.4.3
+docker pull coll/heapster-amd64:v1.5.4
+
+
+到 heapster release 页面 下载最新版本的 heapster
+https://github.com/kubernetes/heapster/archive/v1.5.4.tar.gz
+tar xvf v1.5.4.tar.gz
+
+修改配置
+$ cd heapster-1.5.4/deploy/kube-config/influxdb
+$ cp grafana.yaml{,.orig}
+$ diff grafana.yaml grafana.yaml.orig 
+16c16
+<         image: coll/heapster-grafana-amd64:v4.4.3 
+---
+>         image: gcr.io/google_containers/heapster-grafana-amd64:v4.4.3
+67c67
+<   type: NodePort
+---
+
+$ cp heapster.yaml{,.orig}
+$ diff heapster.yaml.orig heapster.yaml
+s
+23c23
+<         image: gcr.io/google_containers/heapster-amd64:v1.5.4
+---
+>         image: coll/heapster-amd64:v1.5.3 
+27c27
+<         - --source=kubernetes:https://kubernetes.default
+---
+>         - --source=kubernetes:https://kubernetes.default?useServiceAccount=true&kubeletHttps=true&kubeletPort=10250&insecure=true
+
+$ cp influxdb.yaml{,.orig}
+$ diff influxdb.yaml.orig influxdb.yaml
+16c16
+<         image: gcr.io/google_containers/heapster-influxdb-amd64:v1.3.3
+---
+>         image: coll/heapster-influxdb-amd64:v1.3.3
+
+$ ls *.yaml
+grafana.yaml  heapster.yaml  influxdb.yaml
+$ kubectl create -f  .
+
+$ cd ../rbac/
+$ cp heapster-rbac.yaml{,.orig}
+$ vim heapster-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:heapster
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  - namespaces
+  - nodes
+  - pods
+  - nodes/stats
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+
+$ kubectl apply -f heapster-rbac.yaml

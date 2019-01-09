@@ -1,0 +1,108 @@
+1. 系统初始化
+
+ip分别为：
+    192.168.160.129(内)  
+    192.168.160.133(内)    
+    192.168.160.134(内)    
+
+
+主机名
+设置永久主机名称，然后重新登录:
+$ sudo hostnamectl set-hostname kube-m1
+$ sudo hostnamectl set-hostname kube-m2
+$ sudo hostnamectl set-hostname kube-m3
+
+$ grep kube-node /etc/hosts
+$ cat >> /etc/hosts <<EOF
+192.168.160.129 kube-m1    kube-m1
+192.168.160.133 kube-m2    kube-m2
+192.168.160.134 kube-m3    kube-m3
+EOF
+
+无密码 ssh 登录其它节点
+如果没有特殊指明，本文档的所有操作均在 master 节点上执行，然后远程分发文件和执行命令
+设置 kube-node1 可以无密码登录所有节点的 k8s 和 root 账户：
+$ ssh-keygen -t rsa
+$ ssh-copy-id root@192.168.160.129
+$ ssh-copy-id root@192.168.160.133
+$ ssh-copy-id root@192.168.160.134
+
+安装依赖包
+在每台机器上安装依赖包：
+CentOS:
+$ sudo yum install -y epel-release
+$ sudo yum install -y conntrack ipvsadm ipset jq sysstat curl iptables libseccomp
+
+关闭防火墙
+在每台机器上关闭防火墙：
+$ sudo systemctl stop firewalld
+$ sudo systemctl disable firewalld
+$ sudo iptables -F && sudo iptables -X && sudo iptables -F -t nat && sudo iptables -X -t nat
+$ sudo iptables -P FORWARD ACCEPT
+
+关闭 swap 分区
+如果开启了 swap 分区，kubelet 会启动失败(可以通过将参数 --fail-swap-on 设置为 false 来忽略 swap on)，故需要在每台机器上关闭 swap 分区：
+$ sudo swapoff -a
+为了防止开机自动挂载 swap 分区，可以注释 /etc/fstab 中相应的条目：
+$ sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+关闭 SELinux
+关闭 SELinux，否则后续 K8S 挂载目录时可能报错 Permission denied：
+$ sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+$ sudo setenforce 0
+$ grep SELINUX /etc/selinux/config 
+SELINUX=disabled
+修改配置文件，永久生效；
+
+
+关闭 dnsmasq
+linux 系统开启了 dnsmasq 后(如 GUI 环境)，将系统 DNS Server 设置为 127.0.0.1，这会导致 docker 容器无法解析域名，需要关闭它：
+$ sudo service dnsmasq stop
+$ sudo systemctl disable dnsmasq
+
+
+设置系统参数
+$ cat > kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-iptables=1
+net.bridge.bridge-nf-call-ip6tables=1
+net.ipv4.ip_forward=1
+vm.swappiness=0
+vm.overcommit_memory=1
+vm.panic_on_oom=0
+fs.inotify.max_user_watches=89100
+EOF
+$ sudo mv kubernetes.conf  /etc/sysctl.d/kubernetes.conf
+$ sudo sysctl -p /etc/sysctl.d/kubernetes.conf
+$ sudo mount -t cgroup -o cpu,cpuacct none /sys/fs/cgroup/cpu,cpuacct
+
+
+加载内核模块
+$ sudo modprobe br_netfilter
+$ sudo modprobe ip_vs
+
+加载ipvs模块
+cat << EOF > /etc/sysconfig/modules/ipvs.modules 
+#!/bin/bash
+ipvs_modules_dir="/usr/lib/modules/\`uname -r\`/kernel/net/netfilter/ipvs"
+for i in \`ls \$ipvs_modules_dir | sed  -r 's#(.*).ko.*#\1#'\`; do
+    /sbin/modinfo -F filename \$i  &> /dev/null
+    if [ \$? -eq 0 ]; then
+        /sbin/modprobe \$i
+    fi
+done
+EOF
+
+chmod +x /etc/sysconfig/modules/ipvs.modules 
+bash /etc/sysconfig/modules/ipvs.modules
+
+设置系统时区
+$ # 调整系统 TimeZone
+$ sudo timedatectl set-timezone Asia/Shanghai
+
+$ # 将当前的 UTC 时间写入硬件时钟
+$ sudo timedatectl set-local-rtc 0
+
+$ # 重启依赖于系统时间的服务
+$ sudo systemctl restart rsyslog 
+$ sudo systemctl restart crond
+

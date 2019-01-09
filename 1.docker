@@ -1,0 +1,39 @@
+
+安装Docker
+Kubernetes从1.6开始使用CRI(Container Runtime Interface)容器运行时接口。默认的容器运行时仍然是Docker，使用的是kubelet中内置dockershim CRI实现。
+
+安装docker的yum源:
+
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+查看最新的Docker版本：
+
+yum list docker-ce.x86_64  --showduplicates |sort -r
+
+
+Kubernetes 1.12已经针对Docker的1.11.1, 1.12.1, 1.13.1, 17.03, 17.06, 17.09, 18.06等版本做了验证，需要注意Kubernetes 1.12最低支持的Docker版本是1.11.1。 我们这里在各节点安装docker的18.06.1版本。
+
+yum makecache fast
+
+yum install -y --setopt=obsoletes=0 \
+  docker-ce-18.06.1.ce-3.el7
+
+systemctl start docker && systemctl enable docker
+
+
+
+
+cat <<EOF > docker.sh
+
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum makecache fast
+yum install -y --setopt=obsoletes=0 \
+  docker-ce-18.06.1.ce-3.el7
+systemctl start docker
+systemctl enable docker
+EOF
+
+
+chmod +x docker.sh && bash -x docker.sh
