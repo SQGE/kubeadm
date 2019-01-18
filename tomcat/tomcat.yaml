@@ -6,7 +6,7 @@ metadata:
   labels:
     app: tomcat
 spec:
-  replicas: 1
+  replicas: 3
   revisionHistoryLimit: 15
   minReadySeconds: 5
   strategy:
@@ -46,6 +46,6 @@ spec:
     protocol: TCP
     targetPort: 8080
     nodePort: 31001
-    name: tomcat7
+    name: tomcat
   selector:
     app: tomcat
