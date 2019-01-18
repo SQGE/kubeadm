@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tomcat 
+  namespace: default 
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: traefik.tomcat.com
+    http:
+      paths:
+      - backend:
+          serviceName: traefik-tomcat-service
+          servicePort: tomcat7
