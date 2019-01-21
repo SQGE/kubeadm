@@ -9,6 +9,7 @@ yum -y install nfs-utils rpcbind
 mount -t nfs $nfs:$dir $dir
 grep "$nfs:$dir $dir nfs rw" /etc/fstab || echo "$nfs:$dir $dir nfs rw" >> /etc/fstab 
 
+#启动 nfs 服务
 systemctl start rpcbind.service 
 systemctl enable rpcbind.service 
 systemctl start nfs.service    
