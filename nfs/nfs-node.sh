@@ -2,10 +2,12 @@
 
 #安装配置 nfs
 nfs='192.168.160.100'
-mkdir -p  /data/k8s && chmod 755 /data/k8s/
+dir='/data/k8s'
+
+mkdir -p  $dir && chmod 755 $dir
 yum -y install nfs-utils rpcbind
-mount -t nfs $nfs:/data/k8s /data/k8s
-grep "$nfs:/mnt /mnt            nfs     rw" /etc/fstab || echo "192.168.48.130:/mnt /mnt            nfs     rw" >> /etc/fstab 
+mount -t nfs $nfs:$dir $dir
+grep "$nfs:$dir $dir nfs rw" /etc/fstab || echo "$nfs:$dir $dir nfs rw" >> /etc/fstab 
 
 systemctl start rpcbind.service 
 systemctl enable rpcbind.service 
