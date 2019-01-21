@@ -1,4 +1,6 @@
- #安装配置 nfs
+#!/bin/bash
+
+#安装配置 nfs
 mkdir -p  /data/k8s && chmod 755 /data/k8s/
 yum -y install nfs-utils rpcbind
 grep "/data/k8s  *(rw,sync,no_root_squash)" /etc/exports || echo "/data/k8s  *(rw,sync,no_root_squash)" >> /etc/exports
