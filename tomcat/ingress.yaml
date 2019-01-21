@@ -11,5 +11,5 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: traefik-tomcat-service
-          servicePort: tomcat7
+          serviceName: tomcat
+          servicePort: tomcat
