@@ -15,4 +15,5 @@ sed -i /^hostname/s/reg.mydomain.com/47.98.109.202/g harbor.cfg
 #修改默认admin密码 123456
 sed -i /^harbor_admin_password/s/Harbor12345/123456/g harbor.cfg
 
+#安装并启动harbor服务
 cd harbor1.7.1/harbor/  && ./install.sh
