@@ -1,0 +1,18 @@
+kubernetes 在使用 kubeadm 搭建集群的时候，默认情况下, 会从 k8s.gcr.io 仓库拉取镜像，但是 gcr 的镜像默认又是被墙了的，所以我们安装起来非常麻烦，当然我们可以去 docker hub 或者 阿里云上面搜索对应的镜像，pull 下来后重新打 tag，但是这样确实也非常麻烦。
+
+为此我们可以通过一份配置文件来配置 kubeadm 的镜像拉取策略，使用 imageRepository 来改变镜像仓库地址，如下面的 config.yaml 配置文件：
+
+apiVersion: kubeadm.k8s.io/v1alpha1
+kind: MasterConfiguration
+api:
+  advertiseAddress: "10.20.79.10"
+networking:
+  podSubnet: "10.244.0.0/16"
+kubernetesVersion: "v1.10.3"
+imageRepository: "registry.cn-hangzhou.aliyuncs.com/google_containers"
+
+然后初始化的使用指定上面的配置文件即可：
+
+kubeadm init --config kubeadm.yaml
+
+这样 kubeadm 就会使用 imageRepository 指定的镜像前缀去拉取镜像了。
