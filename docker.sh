@@ -18,5 +18,15 @@ cat > /etc/docker/daemon.json <<EOF
   ]
 }
 EOF
+
   
 systemctl start docker && systemctl enable docker
+
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://oke3cgey.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker

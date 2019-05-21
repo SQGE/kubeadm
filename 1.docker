@@ -35,5 +35,15 @@ systemctl start docker
 systemctl enable docker
 EOF
 
+# 添加aliyun镜像加速器
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://oke3cgey.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
 
 chmod +x docker.sh && bash -x docker.sh
