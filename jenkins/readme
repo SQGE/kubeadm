@@ -1,0 +1,4 @@
+kubectl create namespace kube-ops
+kubectl create -f pvc.yaml
+kubectl create -f rbac.yaml
+kubectl create -f jenkins.yaml 
