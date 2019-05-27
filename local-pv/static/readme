@@ -1,0 +1,20 @@
+install:
+
+kubectl create -f local-storage.yaml
+kubectl create -f local-pv.yaml
+kubectl create -f local-pvc.yaml
+
+test:
+
+kubectl creat -f pod-example.yaml
+
+
+delete：
+
+如何删除这个pv
+一定要按照流程来 , 要不然会删除失败
+
+删除使用这个pv的pod
+从node上移除这个磁盘(按照一个pv一块盘)
+删除pvc
+删除pv
