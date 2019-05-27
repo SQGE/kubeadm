@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: local-pod
+spec:
+  containers:
+  - image: busybox
+    imagePullPolicy: IfNotPresent
+    name: busybox
+    command:
+      - "/bin/sh"
+    args:
+      - "-c"
+      - "echo 'hello k8s local storage' > /mnt/SUCCESS && sleep 36000 || exit 1"
+    volumeMounts:
+    - mountPath: /mnt
+      name: local-volume
+  volumes:
+  - name: local-volume
+    persistentVolumeClaim:
+      claimName: local-pvc
