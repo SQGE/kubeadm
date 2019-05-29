@@ -42,3 +42,12 @@ Fluentd
 
 kubectl create -f fluentd-configmap.yaml
 kubectl create -f fluentd-daemonset.yaml
+
+
+
+
+
+test
+
+
+kubectl create -f test-pod.yaml
