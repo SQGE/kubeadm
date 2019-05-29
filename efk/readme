@@ -4,6 +4,7 @@ ES
 kubectl create -f kube-logging.yaml
 kubectl create -f elasticsearch-storageclass.yaml
 kubectl create -f elasticsearch-statefulset.yaml
+kubectl create -f elasticsearch-svc.yaml
 kubectl get sts -n logging
 
 
